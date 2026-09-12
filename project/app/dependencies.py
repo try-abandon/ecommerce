@@ -1,0 +1,11 @@
+from typing import Annotated
+
+from fastapi import Depends
+
+from project.app.services.chat.conversation import ConversationService
+
+
+def get_conversation_service():
+    return ConversationService()
+
+ConversationServiceDep = Annotated[ConversationService, Depends(get_conversation_service)]
