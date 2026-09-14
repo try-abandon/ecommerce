@@ -1,0 +1,20 @@
+from typing import Annotated
+
+from fastapi import APIRouter, Header
+
+from app.dependencies import MessageServiceDep, get_auth_service
+from app.schemas.message import ChatMessageRequest
+
+router = APIRouter(tags=["聊天路由"], prefix="/api/v1/chat")
+
+@router.post("/messages")
+async def accept_user_message(
+        chat_message: ChatMessageRequest,
+        message_service: MessageServiceDep,
+        authorization: Annotated[str | None, Header()] = None
+):
+    authorized_user = get_auth_service().get_authorized_user(authorization, "customer")
+
+    result = await message_service.accept_user_message(chat_message, authorized_user.user_id)
+
+    return result

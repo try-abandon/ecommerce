@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models.models import Message
+from models.models import Message, Conversation
 
 
 class MessageRepository:
@@ -21,3 +21,21 @@ class MessageRepository:
         )
 
         return list(result.all())
+
+    async def find_same_message_in_collection(self, message_id: str) -> tuple[Message, Conversation] | None:
+        """
+        查找当前会话是否有相同的消息
+        """
+        result = await self.session.execute(
+            select(Message, Conversation)
+            .join(
+                Conversation,
+                Message.conversation_id == Conversation.id
+            )
+            .where(Message.message_id == message_id)
+        )
+
+        return result.tuples().one_or_none()
+
+    def add_message(self, message: Message):
+        self.session.add(message)
