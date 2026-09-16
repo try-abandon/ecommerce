@@ -38,6 +38,6 @@ async def get_conversation_detail(
     authorized_user = get_auth_service().get_authorized_user(authorization, "agent", "admin")
 
     # 2、获得会话详情
-    conversation_detail = conversation_service.get_conversation_detail(authorized_user.user_id, conversation_id)
+    conversation_detail = conversation_service.get_conversation_detail(conversation_id)
 
     return conversation_detail

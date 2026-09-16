@@ -1,12 +1,13 @@
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
-from app.routers.chat import conversation
+from app.routers.chat import conversation, message
 from common.config import get_settings
 
 app = FastAPI(description="FastAPI集成的客服服务")
 
 app.include_router(conversation.router)
+app.include_router(message.router)
 
 app.add_middleware(
     CORSMiddleware,

@@ -39,6 +39,14 @@ class ConversationService:
             "is_processing": is_processing
         }
 
+    async def have_lock_ensure_effective_conversion(self, user_id: str) -> Conversation:
+        conversation = await self.ensure_effective_conversion(user_id)
+        await self.session.refresh(
+            conversation,
+            with_for_update=True
+        )
+        return conversation
+
     async def ensure_effective_conversion(self, user_id: str) -> Conversation:
         """
         1、将当前用户已经超时过期的会话将状态设置为“CLOSE”

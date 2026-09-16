@@ -1,10 +1,11 @@
 from typing import Any
 
+from select import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.repositories.conversation import ConversationRepository
 from app.repositories.message import MessageRepository
-from app.schemas.event import STAFF_CHANNEL, RealTimeOutBoxType
+from app.services.chat.realtime import STAFF_CHANNEL, RealTimeOutBoxType
 from app.schemas.message import ChatMessageRequest
 from app.services.chat.conversation import ConversationService
 from app.services.chat.turn import TurnService
@@ -49,7 +50,7 @@ class MessageService:
 
         # 2、创建当前用户消息
         # 拿到当前用户的有效会话
-        conversation = await self.conversation_service.ensure_effective_conversion(user_id)
+        conversation = await self.conversation_service.have_lock_ensure_effective_conversion(user_id)
 
         # 保存消息
         message = self.save_message(
@@ -107,7 +108,6 @@ class MessageService:
         conversation.last_active_at = get_utcnow()
 
         # 3. 保存
-
         self.message_repository.add_message(message)
 
         return message

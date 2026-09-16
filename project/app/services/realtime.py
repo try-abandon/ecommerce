@@ -2,7 +2,7 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from project.app.schemas.event import RealTimeOutBoxType
+from project.app.services.chat.realtime import RealTimeOutBoxType
 from project.common.utils import get_uid
 from project.models.models import RealtimeOutbox, Message
 
