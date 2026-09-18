@@ -1,11 +1,12 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Header
+from fastapi import APIRouter, Header, Query
 
 from app.dependencies import MessageServiceDep, get_auth_service
 from app.schemas.message import ChatMessageRequest, AcceptUserMessageResponse
 
 router = APIRouter(tags=["聊天路由"], prefix="/api/v1/chat")
+
 
 @router.post("/messages", response_model=AcceptUserMessageResponse)
 async def accept_user_message(
@@ -18,3 +19,20 @@ async def accept_user_message(
     result = await message_service.accept_user_message(chat_message, authorized_user.user_id)
 
     return result
+
+
+@router.get("/history", response_model=list[HistoryMessageResponse])
+async def get_chat_history(
+        message_service: MessageServiceDep,
+        authorization: Annotated[str | None, Header()] = None,
+        after_sequence: Annotated[int | None, Query(ge=0)] = None
+):
+    """返回当前客户的全部或增量聊天记录。"""
+    current_user = get_auth_service().get_authorized_user(
+        authorization,
+        "customer"
+    )
+    return await message_service.get_history(
+        current_user.user_id,
+        after_sequence
+    )

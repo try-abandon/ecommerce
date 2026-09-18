@@ -3,7 +3,8 @@ from typing import Annotated
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.services.auth import AuthService
+from app.services.admin.auth import AuthService
+from app.services.admin.handoff import HandoffService
 from app.services.chat.message import MessageService
 from app.services.chat.turn import TurnService
 from app.services.realtime import RealTimeOutBoxService
@@ -59,3 +60,12 @@ def get_message_service(
 
 
 MessageServiceDep = Annotated[MessageService, Depends(get_message_service)]
+
+
+async def get_handoff_service(
+        session: Annotated[AsyncSession, Depends(get_db_session)]
+) -> HandoffService:
+    return HandoffService(session)
+
+
+HandoffServiceDep = Annotated[HandoffService, Depends(get_handoff_service)]

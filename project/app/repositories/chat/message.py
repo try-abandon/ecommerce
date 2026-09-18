@@ -79,3 +79,25 @@ class MessageRepository:
         )
 
         return list(results.all())
+
+    async def list_user_history(
+            self,
+            user_id: str,
+            after_sequence: int | None = None
+    ) -> list[tuple[Message, Conversation]]:
+        """查询当前用户的历史消息，可按消息序号增量读取"""
+        statement = (
+            select(Message, Conversation)
+            .join(
+                Conversation,
+                Conversation.id == Message.conversation_id,
+            )
+            .where(Conversation.user_id == user_id)
+        )
+        if after_sequence is not None:
+            statement = statement.where(Message.id > after_sequence)
+
+        result = await self.session.execute(
+            statement.order_by(Message.id)
+        )
+        return list(result.tuples().all())

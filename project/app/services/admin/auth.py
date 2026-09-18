@@ -1,7 +1,7 @@
 import jwt
 from fastapi import HTTPException, status
 
-from project.app.schemas.user import CurrentUser
+from app.schemas.admin.user import CurrentUser
 from common.config import get_settings
 
 

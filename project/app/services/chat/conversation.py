@@ -3,9 +3,9 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.repositories.conversation import ConversationRepository
-from app.repositories.message import MessageRepository
-from app.repositories.turn import ConversationTurnRepository
+from app.repositories.chat.conversation import ConversationRepository
+from app.repositories.chat.message import MessageRepository
+from app.repositories.chat.turn import ConversationTurnRepository
 from common.config import get_settings
 from common.utils import get_utcnow
 from models.models import Conversation, Message

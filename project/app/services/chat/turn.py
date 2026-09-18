@@ -3,8 +3,9 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.repositories.message import MessageRepository
-from app.repositories.turn import ConversationTurnRepository
+from app.repositories.chat.conversation import ConversationRepository
+from app.repositories.chat.message import MessageRepository
+from app.repositories.chat.turn import ConversationTurnRepository
 from app.services.chat.message import MessageService
 from common.config import Settings
 from common.utils import get_utcnow
@@ -17,6 +18,7 @@ class TurnService:
         self.settings = Settings()
         self.turn_repository = ConversationTurnRepository(session)
         self.message_repository = MessageRepository(session)
+        self.conversation_repository = ConversationRepository(session)
 
     async def add_message_to_turn(
             self,
@@ -142,7 +144,64 @@ class TurnService:
         turn.finished_at = get_utcnow()
         TurnService._release_lease(turn)  # 清理占用者的信息
 
+    async def list_expired_running_turns_with_conversations(
+            self,
+    ) -> list[tuple[ConversationTurn, Conversation]]:
+        """查询全部过期 Turn，并锁定各自所属会话。"""
+        turns = await self.turn_repository.list_expired_running_turns(
+            get_utcnow()
+        )
+        result: list[tuple[ConversationTurn, Conversation]] = []
+        for turn in turns:
+            conv = await self.conversation_repository.get_and_lock_by_id(turn.conversation_id)
+            result.append((turn, conv))
+
+        return result
+
+    def mark_superseded(self, turn: ConversationTurn):
+        turn.status = "SUPERSEDED"  # 终态
+        turn.finished_at = get_utcnow()
+        self._release_lease(turn)  # 清理占用者的信息
+
+    def requeue(self, turn: ConversationTurn, error: Exception) -> None:
+        """将租约超时的 Turn 重新放回待领取队列。"""
+        turn.status = "COLLECTING"
+        turn.collect_until = get_utcnow()
+        turn.run_id = None
+        turn.last_error = str(error)
+        self._release_lease(turn)
+
     @staticmethod
     def _release_lease(turn: ConversationTurn):
         turn.locked_by = None
         turn.locked_until = None
+
+    def retry_or_fail(self,
+                      turn: ConversationTurn,
+                      error: Exception):
+        turn.last_error = str(error)
+        self._release_lease(turn)
+        if turn.attempts < self.settings.ai_worker_max_attempts:
+            turn.status = "COLLECTING"
+            turn.collect_until = get_utcnow() + timedelta(
+                seconds=self.settings.ai_worker_retry_delay_seconds
+            )
+            turn.run_id = None
+            return True
+
+        turn.status = "FAILED"
+        turn.finished_at = get_utcnow()
+        return False
+
+    def mark_completed(self, turn: ConversationTurn):
+        turn.status = "COMPLETED"
+        turn.finished_at = get_utcnow()
+        self._release_lease(turn)
+
+    def requeue(self, turn: ConversationTurn, error: Exception) -> None:
+        """将租约超时的 Turn 重新放回待领取队列。"""
+        turn.status = "COLLECTING"
+        turn.collect_until = get_utcnow()
+        turn.run_id = None
+        turn.last_error = str(error)
+        self._release_lease(turn)

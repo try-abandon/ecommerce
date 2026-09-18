@@ -3,13 +3,13 @@ from typing import Any
 from select import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.repositories.conversation import ConversationRepository
-from app.repositories.message import MessageRepository
-from app.services.chat.realtime import STAFF_CHANNEL, RealTimeOutBoxType
-from app.schemas.message import ChatMessageRequest
+from app.repositories.chat.message import MessageRepository
+from app.schemas.chat.message import ChatMessageRequest
+from app.schemas.event import RealTimeOutBoxType
 from app.services.chat.conversation import ConversationService
 from app.services.chat.turn import TurnService
-from app.services.realtime import build_message_event_data, RealTimeOutBoxService
+from app.services.realtime import RealTimeOutBoxService, STAFF_CHANNEL, build_message_created_data
+
 from common.utils import get_uid, get_utcnow
 from models.models import Conversation, Message
 
@@ -111,3 +111,22 @@ class MessageService:
         self.message_repository.add_message(message)
 
         return message
+
+    async def get_history(
+            self,
+            user_id: str,
+            after_sequence: int | None = None
+    ) -> list[dict[str, Any]]:
+        """返回用户历史消息；重连时可按 sequence 增量查询。"""
+        return [
+            {
+                **build_message_created_data(message),
+                "conversation_started_at": conversation.started_at.isoformat()
+            }
+            for message, conversation in (
+                await self.message_repository.list_user_history(
+                    user_id,
+                    after_sequence
+                )
+            )
+        ]

@@ -55,7 +55,7 @@ class ConversationTurnRepository:
 
         return result.tuples().one_or_none()
 
-    async def find_turn_and_conversation_by_turn_id(self, turn_id: str) -> tuple[ConversationTurn,Conversation]:
+    async def find_turn_and_conversation_by_turn_id(self, turn_id: str) -> tuple[ConversationTurn, Conversation]:
         result = await self.session.execute(
             select(ConversationTurn, Conversation)
             .join(
@@ -66,3 +66,17 @@ class ConversationTurnRepository:
             .with_for_update(of=Conversation)
         )
         return result.tuples().one()
+
+    async def list_expired_running_turns(
+            self,
+            now: datetime
+    ) -> list[ConversationTurn]:
+        """查询租约已经过期的全部运行中 Turn。"""
+        result = await self.session.scalars(
+            select(ConversationTurn)
+            .where(
+                ConversationTurn.status == "RUNNING",
+                ConversationTurn.locked_until <= now
+            )
+        )
+        return list(result.all())

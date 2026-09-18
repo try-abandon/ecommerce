@@ -1,11 +1,9 @@
 from enum import StrEnum
 
 
-
 class RealTimeOutBoxType(StrEnum):
-    MESSAGE_CREATE="message_created"
-    HANDOFF_CHANG="handoff_changed"
-
+    MESSAGE_CREATED = "message_created"
+    HANDOFF_CHANGED = "handoff_changed"
 
 
 class AgentEventType(StrEnum):

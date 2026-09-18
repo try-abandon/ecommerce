@@ -56,3 +56,14 @@ class ConversationRepository:
         根据会话id获得会话
         """
         return await self.session.get(Conversation, conversation_id)
+
+    async def get_and_lock_by_id(
+            self,
+            conversation_id: str,
+    ) -> Conversation | None:
+        """查询并锁定指定会话行。"""
+        return await self.session.scalar(
+            select(Conversation)
+            .where(Conversation.id == conversation_id)
+            .with_for_update()
+        )
