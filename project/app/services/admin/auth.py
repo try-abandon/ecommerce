@@ -69,9 +69,9 @@ class AuthService:
 
     def encode_access_token(self, current_user: CurrentUser) -> str:
         access_token = jwt.encode(
-            current_user.model_dump,
-            self.settings.internal_service_jwt_secret,
-            self.settings.internal_service_jwt_algorithm
+            current_user.model_dump(),
+            self.settings.jwt_secret,
+            self.settings.jwt_algorithm
         )
 
         return access_token

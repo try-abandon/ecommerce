@@ -67,12 +67,12 @@ class MessageService:
             await self.turn_service.add_message_to_turn(message, conversation)
         elif conversation.mode in ("QUEUED", "HUMAN"):
             ## 3.2、如果是QUEUED或者HUMAN需要管理实时时间事件
-            self.outbox_service.add_realtime_outbox(
-                STAFF_CHANNEL,
-                RealTimeOutBoxType.MESSAGE_CREATE,
-                build_message_event_data(message),
-                conversation.id,
-                chat_message.message_id
+            await self.session.flush()
+            self.outbox_service.add_message_created_events(
+                conversation,
+                message,
+                notify_user=False,
+                notify_staff=True
             )
         else:
             raise ValueError(f"当前会话模式{conversation.mode}不支持")

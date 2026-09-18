@@ -3,6 +3,8 @@ from typing import Annotated
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.repositories.admin.admin import AdminMetricsRepository
+from app.services.admin.admin import AdminMetricsService
 from app.services.admin.auth import AuthService
 from app.services.admin.handoff import HandoffService
 from app.services.chat.message import MessageService
@@ -18,6 +20,18 @@ def get_auth_service():
     :return:
     """
     return AuthService()
+
+
+async def get_admin_metrics_service(
+        session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> AdminMetricsService:
+    return AdminMetricsService(AdminMetricsRepository(session))
+
+
+AdminMetricsServiceDep = Annotated[
+    AdminMetricsService,
+    Depends(get_admin_metrics_service),
+]
 
 
 def get_conversation_service(session: Annotated[AsyncSession, Depends(get_db_session)]):

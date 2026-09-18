@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Header
 
-from app.schemas.conversation import CurrentConversationResponse, ConversationDetailResponse
+from app.schemas.chat.conversation import CurrentConversationResponse, ConversationDetailResponse
 from project.app.dependencies import ConversationServiceDep, get_auth_service
 
 router = APIRouter(prefix="/api/v1", tags=["聊天会话"])

@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Header
 
-from project.app.dependencies import AdminMetricsServiceDep, get_auth_service
+from app.dependencies import get_auth_service, AdminMetricsServiceDep
 from project.app.schemas.admin.admin import AdminMetricsResponse
 
 router = APIRouter(tags=["管理员路由"], prefix="/api/v1/admin")

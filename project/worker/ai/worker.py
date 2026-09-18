@@ -29,9 +29,9 @@ class TurnProcessor:
         self.ai_gateway = AIServiceGateway()
         self.event_parser = AIEventParser()
 
-    async def process(self, request_data: dict[str, Any], request_message_id: str):
+    async def process(self, request_data: dict[str, Any], user_id: str):
         # 1、创建令牌
-        access_token = self.auth_service.encode_access_token(CurrentUser(user_id=request_data['user_id']))
+        access_token = self.auth_service.encode_access_token(CurrentUser(user_id=user_id))
 
         # 2、(发送请求给AI_SERVICE/解析AI_SERVICE的事件类型以及数据/校验【二阶段】)
         error: Exception | None = None
@@ -70,7 +70,7 @@ class TurnProcessor:
                     return run_id, None
 
                 # 调用commit_run
-                event = await self.ai_gateway.commit_run(access_token, run_id, request_data['input_revision'])
+                event = await self.ai_gateway.confirm_run(access_token, run_id)
                 commit = True  # 变量
 
             return run_id, self.event_parser.parser_outcome(event)

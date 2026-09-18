@@ -26,17 +26,15 @@ class AIServiceGateway:
             request,
         )
 
-    async def commit_run(
+    async def confirm_run(
             self,
             token: str,
-            run_id: str,
-            input_revision: int,
+            run_id: str
     ) -> dict[str, Any]:
         """提交快照校验通过的业务决策。"""
         return await self._post_json(
-            f"/internal/v1/agent/runs/{run_id}/commit",
+            f"/internal/v1/agent/runs/{run_id}/confirm",
             token,
-            {"input_revision": input_revision},
         )
 
     async def cancel_run(

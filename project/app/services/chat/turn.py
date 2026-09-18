@@ -112,10 +112,7 @@ class TurnService:
         # 3、构建字典，返回上下文
         return {
             "conversation_id": claimed_turn.conversation_id,
-            "user_id": claimed_turn.user_id,
             "turn_id": claimed_turn.id,
-            "request_id": f"{claimed_turn.id}:attempt:{claimed_turn.attempts}",
-            "input_revision": snapshot_revision,
             "messages": [
                 {
                     "message_id": message.message_id,
@@ -129,12 +126,11 @@ class TurnService:
                     "message_id": message.message_id,
                     "role": message.role,
                     "type": message.message_type,
-                    "content": message.content,
-                    "created_at": message.created_at.isoformat()
+                    "content": message.content
                 }
                 for message in history_messages
             ],
-        }, current_messages[-1].message_id
+        }, claimed_turn.user_id
 
     async def find_turn_and_conversation_by_turn_id(self, turn_id: str) -> tuple[ConversationTurn, Conversation]:
         return await self.turn_repository.find_turn_and_conversation_by_turn_id(turn_id)

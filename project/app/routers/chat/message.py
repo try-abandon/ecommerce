@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Header, Query
 
 from app.dependencies import MessageServiceDep, get_auth_service
-from app.schemas.message import ChatMessageRequest, AcceptUserMessageResponse
+from app.schemas.chat.message import AcceptUserMessageResponse, ChatMessageRequest, HistoryMessageResponse
 
 router = APIRouter(tags=["聊天路由"], prefix="/api/v1/chat")
 
